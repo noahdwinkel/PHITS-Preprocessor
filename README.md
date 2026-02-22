@@ -1,65 +1,39 @@
 # phits-preprocessor README
-
-This is the README for your extension "phits-preprocessor". After writing up a brief description, we recommend including the following sections.
+PHITS is wonderfully useful, but kinda annoying to use. This is an effort to make it a little easier
 
 ## Features
+This tool adds a couple of functionalities useful for creating PHITS input files
+1) Implements VSCode highlighting for PHITS .inp files
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+2) Allows you to use variables with nicer names. 
+   want to use a variable? Do the following!
+   var my_variable_name = whatever_you_want_here
 
-For example if there is an image subfolder under your extension project workspace:
+   Then, click the expand button in the run menu (ctrl/cmd + alt + r). 
+   This will replace all your named variables and their instances in the input
+   file with the whatever you have associated with them
+    -> Wellllll almost. It removes spaces because PHITS doesn't really like 1 + 2.
+       It likes 1+2
 
-\!\[feature X\]\(images/feature-x.png\)
+3) Allows you to run and send to PHIG-3D inside the VSCode environment. Automatic detection of a .inp file
+   activates an option to run, expand, expand + run, send to PHIG-3D, and expand and send to PHIG-3D. These
+   options can be accessed through (ctrl/cmd + alt + r) or through the Run button on the bottom bar
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
 ## Requirements
+PHITS! That's about it. See the good people at JAEA:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+https://phits.jaea.go.jp/ 
 
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+I'm sure there are a lot! This is brand new.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+Initial release of this tool. More to come maybe. We shall see...
 
 **Enjoy!**

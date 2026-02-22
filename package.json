@@ -1,9 +1,9 @@
 {
   "name": "phits-preprocessor",
   "displayName": "PHITS Preprocessor",
-  "description": "Preprocess PHITS .inp files: inline variables, expand expressions, syntax highlighting, and run tooling.",
+  "description": "Preprocess PHITS .inp files: inline variables, expand expressions, syntax highlighting, and run tools.",
   "version": "0.0.1",
-  "publisher": "local-dev",
+  "publisher": "NoahWinkel",
   "engines": {
     "vscode": "^1.109.0"
   },
