@@ -1,0 +1,139 @@
+{
+  "name": "phits-preprocessor",
+  "displayName": "PHITS Preprocessor",
+  "description": "Preprocess PHITS .inp files: inline variables, expand expressions, syntax highlighting, and run tooling.",
+  "version": "0.0.1",
+  "publisher": "local-dev",
+  "engines": {
+    "vscode": "^1.109.0"
+  },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "phits-inp",
+        "aliases": ["PHITS INP", "PHITS"],
+        "extensions": [".inp"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "phits-inp",
+        "scopeName": "source.phits",
+        "path": "./syntaxes/phits.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "phits-preprocessor.runMenu",
+        "title": "PHITS: Run Menu"
+      },
+      {
+        "command": "phits-preprocessor.replaceVariables",
+        "title": "PHITS: Expand (Create .expanded.inp)"
+      },
+      {
+        "command": "phits-preprocessor.runPhits",
+        "title": "PHITS: Run (Current File)"
+      },
+      {
+        "command": "phits-preprocessor.runPhitsExpanded",
+        "title": "PHITS: Expand and Run"
+      },
+      {
+        "command": "phits-preprocessor.sendToPhig3d",
+        "title": "PHITS: Send to PHIG-3D (Current File)"
+      },
+      {
+        "command": "phits-preprocessor.sendToPhig3dExpanded",
+        "title": "PHITS: Expand and Send to PHIG-3D"
+      },
+      {
+        "command": "phits-preprocessor.createBoilerplate",
+        "title": "PHITS: Create Boilerplate Input"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "phits-preprocessor.runMenu",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.replaceVariables",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.runPhits",
+        "key": "ctrl+alt+shift+r",
+        "mac": "cmd+alt+shift+r",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.runPhitsExpanded",
+        "key": "ctrl+alt+shift+e",
+        "mac": "cmd+alt+shift+e",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.sendToPhig3d",
+        "key": "ctrl+alt+shift+g",
+        "mac": "cmd+alt+shift+g",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.sendToPhig3dExpanded",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g",
+        "when": "editorTextFocus && editorLangId == 'phits-inp'"
+      },
+      {
+        "command": "phits-preprocessor.createBoilerplate",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n",
+        "when": "editorTextFocus"
+      }
+    ],
+
+    "configurationDefaults": {
+      "[phits-inp]": {
+        "editor.colorDecorators": false
+      }
+    },
+
+    "configuration": {
+      "title": "PHITS Preprocessor",
+      "properties": {
+        "phitsPreprocessor.phitsCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Command or full path to PHITS launcher. If empty, defaults to phits.bat on Windows and phits.sh on macOS."
+        },
+        "phitsPreprocessor.phig3dCommand": {
+          "type": "string",
+          "default": "",
+          "description": "Command or full path to PHIG-3D launcher. If empty, defaults to phig3d.bat on Windows and phid3d.sh on macOS."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.109.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "eslint": "^9.39.2",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
