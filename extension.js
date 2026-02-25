@@ -61,11 +61,25 @@ function assertValidVarName(name) {
   }
 }
 
-function parseVarsAndStripLines(inputText) {
+function isQuotedString(rhs) {
+  if (!rhs) return false;
+  const s = rhs.trim();
+  if (s.length < 2) return false;
+  const q0 = s[0];
+  const q1 = s[s.length - 1];
+  return (q0 === '"' && q1 === '"') || (q0 === "'" && q1 === "'");
+}
+
+function unquoteString(rhs) {
+  const s = rhs.trim();
+  return s.slice(1, -1);
+}
+
+function parseVarDeclsAndStripLines(inputText) {
   const lines = inputText.split(/\r?\n/);
   const declRe = /^\s*var\s+([A-Za-z_]\w*)\s*=\s*(.*?)\s*$/;
 
-  const vars = new Map();
+  const decls = [];
   const keptLines = [];
 
   let section = '';
@@ -73,6 +87,7 @@ function parseVarsAndStripLines(inputText) {
   for (const rawLine of lines) {
     const maybeSection = detectSection(rawLine);
     if (maybeSection) section = maybeSection;
+
     const candidate = stripCommentsBySection(rawLine, section);
 
     const m = candidate.match(declRe);
@@ -84,13 +99,14 @@ function parseVarsAndStripLines(inputText) {
     const name = m[1];
     assertValidVarName(name);
 
-    const expr = normalizeExpr(m[2]);
-    if (!expr) throw new Error(`Variable "${name}" has no value.`);
+    const rhsRaw = (m[2] ?? '').trim();
+    if (!rhsRaw) throw new Error(`Variable "${name}" has no value.`);
 
-    vars.set(name, expr);
+    if (isQuotedString(rhsRaw)) decls.push({ name, kind: 'string', rhsRaw });
+    else decls.push({ name, kind: 'number', rhsRaw });
   }
 
-  return { vars, strippedText: keptLines.join('\n') };
+  return { decls, strippedText: keptLines.join('\n') };
 }
 
 function replaceTokens(text, replacementsMap) {
@@ -105,40 +121,47 @@ function replaceTokens(text, replacementsMap) {
   return out;
 }
 
-function resolveVarExpressions(rawVars) {
-  const resolved = new Map();
-  const visiting = new Set();
+function resolveDeclarationsSequential(decls) {
+  const env = new Map(); // name -> { type: 'number'|'string', value: string }
 
-  function resolveOne(name) {
-    if (resolved.has(name)) return resolved.get(name);
-    if (!rawVars.has(name)) return null;
-
-    if (visiting.has(name)) {
-      const cycle = Array.from(visiting).join(' -> ') + ' -> ' + name;
-      throw new Error(`Cyclic variable dependency detected: ${cycle}`);
+  for (const decl of decls) {
+    if (decl.kind === 'string') {
+      env.set(decl.name, { type: 'string', value: unquoteString(decl.rhsRaw) });
+      continue;
     }
 
-    visiting.add(name);
+    let expr = normalizeExpr(decl.rhsRaw);
+    if (!expr) throw new Error(`Variable "${decl.name}" has no numeric expression.`);
 
-    let expr = normalizeExpr(rawVars.get(name));
+    const subs = new Map();
+    for (const [varName, varVal] of env.entries()) {
+      const depRe = new RegExp(`\\b${escapeRegex(varName)}\\b`);
+      if (!depRe.test(expr)) continue;
 
-    const depsResolved = new Map();
-    for (const depName of rawVars.keys()) {
-      if (depName === name) continue;
-      const depRe = new RegExp(`\\b${escapeRegex(depName)}\\b`);
-      if (depRe.test(expr)) depsResolved.set(depName, resolveOne(depName));
+      if (varVal.type !== 'number') {
+        throw new Error(
+          `Type error in "${decl.name}": numeric expression references string variable "${varName}".`
+        );
+      }
+      subs.set(varName, `(${varVal.value})`);
     }
 
-    expr = replaceTokens(expr, depsResolved);
+    expr = replaceTokens(expr, subs);
     expr = normalizeExpr(expr);
 
-    visiting.delete(name);
-    resolved.set(name, expr);
-    return expr;
+    env.set(decl.name, { type: 'number', value: expr });
   }
 
-  for (const name of rawVars.keys()) resolveOne(name);
-  return resolved;
+  return env;
+}
+
+function buildFinalReplacementMap(env) {
+  const map = new Map();
+  for (const [name, v] of env.entries()) {
+    if (v.type === 'number') map.set(name, `(${v.value})`);
+    else map.set(name, v.value); // no quotes on substitution
+  }
+  return map;
 }
 
 async function writeOutputFile(originalPath, outputText) {
@@ -168,13 +191,15 @@ async function expandActiveInp() {
   if (path.extname(doc.fileName).toLowerCase() !== '.inp') throw new Error('This command only works for .inp files.');
 
   const inputText = doc.getText();
-  const { vars: rawVars, strippedText } = parseVarsAndStripLines(inputText);
-  const resolvedVars = resolveVarExpressions(rawVars);
 
-  const outputText = replaceTokens(strippedText, resolvedVars);
+  const { decls, strippedText } = parseVarDeclsAndStripLines(inputText);
+  const env = resolveDeclarationsSequential(decls);
+  const finalMap = buildFinalReplacementMap(env);
+
+  const outputText = replaceTokens(strippedText, finalMap);
   const outUri = await writeOutputFile(doc.fileName, outputText);
 
-  return { outUri, replacedCount: resolvedVars.size, sourceDoc: doc };
+  return { outUri, replacedCount: finalMap.size, sourceDoc: doc };
 }
 
 let sharedTerminal = null;
@@ -271,6 +296,16 @@ async function createBoilerplateFile() {
   await vscode.window.showTextDocument(doc, { preview: false });
 }
 
+/**
+ * Shortcut labels are *display-only* (VS Code keybindings are user-overridable in Keyboard Shortcuts UI).
+ * These values let the run menu reflect whatever the user set their shortcuts to.
+ */
+function getShortcutLabel(commandId) {
+  const cfg = getConfig();
+  const labels = cfg.get('shortcutLabels') ?? {};
+  return labels[commandId] ?? '';
+}
+
 async function showRunMenu() {
   const items = [
     { label: 'Run PHITS (current file)', command: 'phits-preprocessor.runPhits' },
@@ -279,7 +314,11 @@ async function showRunMenu() {
     { label: 'Expand and run PHITS', command: 'phits-preprocessor.runPhitsExpanded' },
     { label: 'Expand and send to PHIG-3D', command: 'phits-preprocessor.sendToPhig3dExpanded' },
     { label: 'Create PHITS boilerplate input', command: 'phits-preprocessor.createBoilerplate' }
-  ];
+  ].map((it) => ({
+    ...it,
+    // VS Code renders `description` on the right in grey.
+    description: getShortcutLabel(it.command)
+  }));
 
   const picked = await vscode.window.showQuickPick(items, {
     title: 'PHITS',
@@ -306,7 +345,7 @@ function activate(context) {
       try {
         const { outUri, replacedCount } = await expandActiveInp();
         vscode.window.showInformationMessage(
-          `Wrote ${path.basename(outUri.fsPath)} (${replacedCount} vars replaced).`
+          `Wrote ${path.basename(outUri.fsPath)} (${replacedCount} vars expanded).`
         );
       } catch (err) {
         vscode.window.showErrorMessage(`PHITS preprocessor failed: ${err?.message ?? String(err)}`);

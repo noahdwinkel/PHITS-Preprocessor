@@ -4,6 +4,7 @@
   "description": "Preprocess PHITS .inp files: inline variables, expand expressions, syntax highlighting, and run tools.",
   "version": "0.0.1",
   "publisher": "NoahWinkel",
+  "repository": "https://github.com/noahdwinkel/PHITS-Preprocessor",
   "engines": {
     "vscode": "^1.109.0"
   },
@@ -27,34 +28,13 @@
       }
     ],
     "commands": [
-      {
-        "command": "phits-preprocessor.runMenu",
-        "title": "PHITS: Run Menu"
-      },
-      {
-        "command": "phits-preprocessor.replaceVariables",
-        "title": "PHITS: Expand (Create .expanded.inp)"
-      },
-      {
-        "command": "phits-preprocessor.runPhits",
-        "title": "PHITS: Run (Current File)"
-      },
-      {
-        "command": "phits-preprocessor.runPhitsExpanded",
-        "title": "PHITS: Expand and Run"
-      },
-      {
-        "command": "phits-preprocessor.sendToPhig3d",
-        "title": "PHITS: Send to PHIG-3D (Current File)"
-      },
-      {
-        "command": "phits-preprocessor.sendToPhig3dExpanded",
-        "title": "PHITS: Expand and Send to PHIG-3D"
-      },
-      {
-        "command": "phits-preprocessor.createBoilerplate",
-        "title": "PHITS: Create Boilerplate Input"
-      }
+      { "command": "phits-preprocessor.runMenu", "title": "PHITS: Run Menu" },
+      { "command": "phits-preprocessor.replaceVariables", "title": "PHITS: Expand (Create .expanded.inp)" },
+      { "command": "phits-preprocessor.runPhits", "title": "PHITS: Run (Current File)" },
+      { "command": "phits-preprocessor.runPhitsExpanded", "title": "PHITS: Expand and Run" },
+      { "command": "phits-preprocessor.sendToPhig3d", "title": "PHITS: Send to PHIG-3D (Current File)" },
+      { "command": "phits-preprocessor.sendToPhig3dExpanded", "title": "PHITS: Expand and Send to PHIG-3D" },
+      { "command": "phits-preprocessor.createBoilerplate", "title": "PHITS: Create Boilerplate Input" }
     ],
     "keybindings": [
       {
@@ -100,13 +80,11 @@
         "when": "editorTextFocus"
       }
     ],
-
     "configurationDefaults": {
       "[phits-inp]": {
         "editor.colorDecorators": false
       }
     },
-
     "configuration": {
       "title": "PHITS Preprocessor",
       "properties": {
@@ -119,6 +97,19 @@
           "type": "string",
           "default": "",
           "description": "Command or full path to PHIG-3D launcher. If empty, defaults to phig3d.bat on Windows and phid3d.sh on macOS."
+        },
+        "phitsPreprocessor.shortcutLabels": {
+          "type": "object",
+          "default": {
+            "phits-preprocessor.runMenu": "Ctrl+Alt+R",
+            "phits-preprocessor.replaceVariables": "Ctrl+Alt+E",
+            "phits-preprocessor.runPhits": "Ctrl+Alt+Shift+R",
+            "phits-preprocessor.runPhitsExpanded": "Ctrl+Alt+Shift+E",
+            "phits-preprocessor.sendToPhig3d": "Ctrl+Alt+Shift+G",
+            "phits-preprocessor.sendToPhig3dExpanded": "Ctrl+Alt+G",
+            "phits-preprocessor.createBoilerplate": "Ctrl+Alt+N"
+          },
+          "description": "Display-only shortcut labels shown in the PHITS run menu (QuickPick). To change the actual shortcuts, use VS Code Keyboard Shortcuts; update these labels to match your custom bindings."
         }
       }
     }
